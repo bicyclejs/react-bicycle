@@ -1,0 +1,33 @@
+{
+  "name": "react-bicycle",
+  "version": "0.0.0",
+  "main": "lib/index.js",
+  "description": "React bindings for the bicycle data synchronisation library",
+  "keywords": [],
+  "dependencies": {
+    "hoist-non-react-statics": "^1.0.3"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.3.17",
+    "babel-preset-forbeslindesay": "^1.0.0",
+    "bicycle": "0.0.4",
+    "eslint": "^1.10.3",
+    "eslint-config-forbeslindesay": "^1.0.0",
+    "react": "^0.14.3"
+  },
+  "peerDependencies": {
+    "bicycle": "0.0.4",
+    "react": "^0.14.3"
+  },
+  "scripts": {
+    "prepublish": "npm run build",
+    "build": "babel src --out-dir lib",
+    "lint": "eslint src"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bicyclejs/react-bicycle.git"
+  },
+  "author": "ForbesLindesay",
+  "license": "MIT"
+}
