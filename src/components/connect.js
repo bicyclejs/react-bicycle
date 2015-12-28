@@ -34,7 +34,8 @@ export default function (getQuery, getEventHandlers) {
         const newQuery = getQuery(nextProps);
         if (areDifferent(this._query, newQuery)) {
           this._subscription.unsubscribe();
-          this._subscription = this.client.subscribe(this._query, this._onUpdate.bind(this));
+          this._query = newQuery;
+          this._subscription = this._client.subscribe(this._query, this._onUpdate.bind(this));
         }
       }
       componentWillUnmount() {
