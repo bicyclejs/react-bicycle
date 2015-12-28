@@ -1,6 +1,6 @@
 import {Component, createElement} from 'react';
 import hoistStatics from 'hoist-non-react-statics';
-import {areDifferent} from 'bicycle/lib/utils';
+import {areDifferent, LOADING} from 'bicycle/lib/utils';
 import clientShape from '../client-shape';
 
 function getDisplayName(WrappedComponent) {
@@ -26,6 +26,19 @@ export default function (getQuery, getEventHandlers) {
         this._query = getQuery(props);
         const {result, notLoaded} = this._client.queryCache(this._query);
         this.state = {result, loaded: !notLoaded};
+        this._isLoading = (value, path) => {
+          if (typeof path === 'undefined') {
+            [value, path] = [this.state.result, value];
+          }
+          for (const key of path.split('.')) {
+            if (value === LOADING) {
+              return true;
+            } else {
+              value = value[key];
+            }
+          }
+          return value === LOADING;
+        };
       }
       componentDidMount() {
         this._subscription = this._client.subscribe(this._query, this._onUpdate.bind(this));
@@ -50,6 +63,7 @@ export default function (getQuery, getEventHandlers) {
           ...this.props,
           ...this.state.result,
           loaded: this.state.loaded,
+          isLoading: this._isLoading,
           ...eventHandlers,
         });
       }
