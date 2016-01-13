@@ -4,6 +4,9 @@
   "main": "lib/index.js",
   "description": "React bindings for the bicycle data synchronisation library",
   "keywords": [],
+  "files": [
+    "lib/"
+  ],
   "dependencies": {
     "hoist-non-react-statics": "^1.0.3"
   },

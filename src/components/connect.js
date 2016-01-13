@@ -31,7 +31,9 @@ export default function (getQuery, getEventHandlers) {
             [value, path] = [this.state.result, value];
           }
           for (const key of path.split('.')) {
-            if (value === LOADING) {
+            if (value === LOADING || (
+              value && typeof value === 'object' && value.loading === true && Object.keys(value).length === 1
+            )) {
               return true;
             } else {
               value = value[key];
