@@ -1,18 +1,22 @@
-import {Component, createElement} from 'react';
+import {Component, createElement, PropTypes} from 'react';
 import hoistStatics from 'hoist-non-react-statics';
-import {areDifferent, LOADING} from 'bicycle/lib/utils';
+import notEqual from 'bicycle/utils/not-equal';
 import clientShape from '../client-shape';
 
 function getDisplayName(WrappedComponent) {
   return WrappedComponent.displayName || WrappedComponent.name || 'Component';
 }
 
-export default function (getQuery, getEventHandlers) {
+const EMPTY_OBJECT = {};
+export default function (getQuery, getEventHandlers, options = EMPTY_OBJECT) {
   return WrappedComponent => {
     class Connect extends Component {
       constructor(props, context) {
         super(props, context);
+        this._onUpdate = this._onUpdate.bind(this);
         this._client = props.client || context.bicycleClient;
+        this._renderLoading = options.renderLoading || context.bicycleRenderLoading || true;
+        this._renderErrors = options.renderErrors || context.bicycleRenderErrors || true;
 
         if (!this._client) {
           throw new Error(
@@ -23,50 +27,60 @@ export default function (getQuery, getEventHandlers) {
           );
         }
 
-        this._query = getQuery(props);
-        const {result, notLoaded} = this._client.queryCache(this._query);
-        this.state = {result, loaded: !notLoaded};
-        this._isLoading = (value, path) => {
+        this._query = getQuery ? getQuery(props) : EMPTY_OBJECT;
+        const {result, loaded, errors, errorDetails} = this._client.queryCache(this._query);
+        this.state = {result, loaded, errors, errorDetails};
+        this._isLoaded = (value, path) => {
           if (typeof path === 'undefined') {
             [value, path] = [this.state.result, value];
           }
           for (const key of path.split('.')) {
-            if (value === LOADING || (
-              value && typeof value === 'object' && value.loading === true && Object.keys(value).length === 1
-            )) {
-              return true;
+            if (value === undefined) {
+              return false;
             } else {
               value = value[key];
             }
           }
-          return value === LOADING;
+          return value !== undefined;
         };
       }
       componentDidMount() {
-        this._subscription = this._client.subscribe(this._query, this._onUpdate.bind(this));
+        this._subscription = this._client.subscribe(this._query, this._onUpdate);
       }
       componentWillReceiveProps(nextProps) {
-        const newQuery = getQuery(nextProps);
-        if (areDifferent(this._query, newQuery)) {
+        const newQuery = getQuery ? getQuery(nextProps) : EMPTY_OBJECT;
+        if (notEqual(this._query, newQuery)) {
           this._subscription.unsubscribe();
           this._query = newQuery;
-          this._subscription = this._client.subscribe(this._query, this._onUpdate.bind(this));
+          this._subscription = this._client.subscribe(this._query, this._onUpdate);
         }
       }
       componentWillUnmount() {
         this._subscription.unsubscribe();
       }
-      _onUpdate(result, loaded) {
-        this.setState({result, loaded});
+      _onUpdate(result, loaded, errors, errorDetails) {
+        this.setState({result, loaded, errors, errorDetails});
       }
       render() {
-        const eventHandlers = getEventHandlers ? getEventHandlers(this._client, this.props) : {};
-        return createElement(WrappedComponent, {
+        const eventHandlers = getEventHandlers ? getEventHandlers(this._client, this.props) : EMPTY_OBJECT;
+        let ComponentToRender = WrappedComponent;
+        if (this._renderErrors !== true && this.state.errors.length) {
+          ComponentToRender = this._renderErrors;
+        } else if (this._renderLoading !== true && !this.state.loaded) {
+          ComponentToRender = this._renderLoading;
+        }
+        const previousElement = this._previousElement;
+        return this._previousElement = createElement(ComponentToRender, {
           ...this.props,
           ...this.state.result,
-          loaded: this.state.loaded,
-          isLoading: this._isLoading,
           ...eventHandlers,
+          result: this.state.result,
+          loaded: this.state.loaded,
+          errors: this.state.errors,
+          errorDetails: this.state.errorDetails,
+          isLoaded: this._isLoaded,
+          WrappedComponent,
+          previousElement,
         });
       }
     }
@@ -75,6 +89,14 @@ export default function (getQuery, getEventHandlers) {
     Connect.WrappedComponent = WrappedComponent;
     Connect.contextTypes = {
       bicycleClient: clientShape,
+      bicycleRenderLoading: PropTypes.oneOfType([
+        PropTypes.any, // Component
+        PropTypes.bool,
+      ]),
+      bicycleRenderErrors: PropTypes.oneOfType([
+        PropTypes.any, // Component
+        PropTypes.bool,
+      ]),
     };
     Connect.propTypes = {
       client: clientShape,
