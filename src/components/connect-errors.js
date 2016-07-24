@@ -8,6 +8,7 @@ function getDisplayName(WrappedComponent) {
 }
 
 const EMPTY_OBJECT = {};
+const EMPTY_ARRAY = [];
 function noop() {}
 export default function connectErrors(options = EMPTY_OBJECT) {
   return WrappedComponent => {
@@ -17,6 +18,8 @@ export default function connectErrors(options = EMPTY_OBJECT) {
         super(props, context);
         this._onNetworkError = options.ignoreNetworkErrors ? noop : this._onNetworkError.bind(this);
         this._onMutationError = options.ignoreMutationErrors ? noop : this._onMutationError.bind(this);
+        this._onQueueRequest = this._onQueueRequest.bind(this);
+        this._onSuccessfulResponse = this._onSuccessfulResponse.bind(this);
         this._dismissNetworkError = this._dismissNetworkError.bind(this);
         this._dismissMutationError = this._dismissMutationError.bind(this);
         this._client = props.client || context.bicycleClient;
@@ -29,15 +32,25 @@ export default function connectErrors(options = EMPTY_OBJECT) {
             `or explicitly pass "client" as a prop to "${this.constructor.displayName}".`
           );
         }
-        this.state = {networkErrors: [], mutationErrors: []};
+        this.state = {networkErrors: [], mutationErrors: [], requestInFlight: false};
       }
       componentDidMount() {
         this._networkErrorsSubscription = this._client.subscribeToNetworkErrors(this._onNetworkError);
         this._mutationErrorsSubscription = this._client.subscribeToMutationErrors(this._onMutationError);
+        if (this._client.subscribeToQueueRequest && this._client.subscribeToSuccessfulResponse) {
+          this._queueRequestSubscription = this._client.subscribeToQueueRequest(this._onQueueRequest);
+          this._successfulResponseSubscription = this._client.subscribeToSuccessfulResponse(this._onSuccessfulResponse);
+        }
       }
       componentWillUnmount() {
         this._networkErrorsSubscription.unsubscribe();
         this._mutationErrorsSubscription.unsubscribe();
+        if (this._queueRequestSubscription) {
+          this._queueRequestSubscription.unsubscribe();
+        }
+        if (this._successfulResponseSubscription) {
+          this._successfulResponseSubscription.unsubscribe();
+        }
       }
       _onNetworkError(err) {
         err.key = 'network_error_key_' + (key++);
@@ -47,14 +60,25 @@ export default function connectErrors(options = EMPTY_OBJECT) {
         err.key = 'mutation_error_key_' + (key++);
         this.setState({mutationErrors: this.state.mutationErrors.concat([err])});
       }
-      _dismissNetworkError({key}) {
+      _onQueueRequest() {
+        this.setState({requestInFlight: true});
+      }
+      _onSuccessfulResponse(pendingMutations) {
         this.setState({
-          networkErrors: this.state.networkErrors.filter(err => err.key !== key),
+          networkErrors: EMPTY_ARRAY,
+          requestInFlight: pendingMutations !== 0,
+        });
+      }
+      _dismissNetworkError({key}) {
+        const networkErrors = this.state.networkErrors.filter(err => err.key !== key);
+        this.setState({
+          networkErrors: networkErrors.length ? networkErrors : EMPTY_ARRAY,
         });
       }
       _dismissMutationError({key}) {
+        const mutationErrors = this.state.mutationErrors.filter(err => err.key !== key);
         this.setState({
-          mutationErrors: this.state.mutationErrors.filter(err => err.key !== key),
+          mutationErrors: mutationErrors.length ? mutationErrors : EMPTY_ARRAY,
         });
       }
       render() {
@@ -62,6 +86,7 @@ export default function connectErrors(options = EMPTY_OBJECT) {
           ...this.props,
           networkErrors: this.state.networkErrors,
           mutationErrors: this.state.mutationErrors,
+          requestInFlight: this.state.requestInFlight,
           onDismissNetworkError: this._dismissNetworkError,
           onDismissMutationError: this._dismissMutationError,
         });

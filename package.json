@@ -14,7 +14,7 @@
     "babel-cli": "^6.3.17",
     "babel-preset-forbeslindesay": "^1.0.0",
     "babelify": "^7.3.0",
-    "bicycle": "0.1.5",
+    "bicycle": "0.2.3",
     "browserify-middleware": "^7.0.0",
     "eslint": "^1.10.3",
     "eslint-config-forbeslindesay": "^1.0.0",
