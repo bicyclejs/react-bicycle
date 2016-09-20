@@ -1,15 +1,6 @@
 import {Component, PropTypes, Children, createElement} from 'react';
 import connectErrors from './connect-errors';
 
-const errorStyle = {
-  whiteSpace: 'pre-wrap',
-  fontFamily: 'monospace',
-  fontSize: '18px',
-  padding: '9px',
-  background: '#900000',
-  color: 'white',
-};
-
 function createErrorBox(error, onDismiss) {
   const div = document.createElement('div');
   div.setAttribute('style', [
