@@ -1,6 +1,5 @@
-import {Component, createElement, PropTypes} from 'react';
+import {Component, createElement} from 'react';
 import hoistStatics from 'hoist-non-react-statics';
-import notEqual from 'bicycle/utils/not-equal';
 import clientShape from '../client-shape';
 
 function getDisplayName(WrappedComponent) {

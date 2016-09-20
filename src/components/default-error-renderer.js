@@ -1,4 +1,4 @@
-import {Component, PropTypes, Children, createElement} from 'react';
+import {Component, Children} from 'react';
 import connectErrors from './connect-errors';
 
 function createErrorBox(error, onDismiss) {
@@ -66,7 +66,7 @@ class Errors extends Component {
         'right: 0;',
         'bottom: 0;',
         'background: rgba(0, 0, 0, 0.8);',
-        'z-index: 99999;'
+        'z-index: 99999;',
       ].join(''));
       props.networkErrors.forEach(
         err => this._errorContainer.appendChild(createErrorBox(err, props.onDismissNetworkError)),
