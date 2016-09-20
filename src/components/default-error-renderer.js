@@ -10,39 +10,83 @@ const errorStyle = {
   color: 'white',
 };
 
-class ErrorBox extends Component {
-  constructor(props) {
-    super(props);
-    this._onDismiss = this._onDismiss.bind(this);
-  }
-  _onDismiss() {
-    this.props.onDismiss(this.props.error);
-  }
-  render() {
-    return createElement(
-      'div',
-      {style: errorStyle},
-      createElement('div', {}, this.props.error.message),
-      createElement('div', {}, '(this error is only shown in development)'),
-      createElement('button', {onClick: this._onDismiss}, 'Dismiss'),
-    );
-  }
+function createErrorBox(error, onDismiss) {
+  const div = document.createElement('div');
+  div.setAttribute('style', [
+    'white-space: pre-wrap;',
+    'font-family: monospace;',
+    'font-size: 18px;',
+    'padding: 9px;',
+    'margin: 9px;',
+    'background: #900000;',
+    'color: white;',
+    'z-index: 99999;',
+  ].join(''));
+  const msg = document.createElement('div');
+  msg.textContent = error.message + '';
+  div.appendChild(msg);
+  const devWarning = document.createElement('div');
+  devWarning.textContent = '(this error is only shown in development)';
+  div.appendChild(devWarning);
+  const dismissButton = document.createElement('button');
+  dismissButton.setAttribute(
+    'style',
+    [
+      'margin: 9px 0 0 0;',
+      'padding: 9px;',
+      'border: 0;',
+      'background: #ffffff;',
+      'font-size: 100%;',
+      'vertical-align: baseline;',
+      'font-family: inherit;',
+      'font-weight: inherit;',
+      'color: black;',
+    ].join('')
+  );
+  dismissButton.textContent = 'Dismiss';
+  dismissButton.addEventListener('click', onDismiss.bind(null, error), false);
+  div.appendChild(dismissButton);
+  return div;
 }
 
 class Errors extends Component {
-  render() {
-    if (this.props.networkErrors.length || this.props.mutationErrors.length) {
-      return createElement(
-        'div',
-        {},
-        this.props.networkErrors.map(
-          err => createElement(ErrorBox, {key: err.key, error: err, onDismiss: this.props.onDismissNetworkError}),
-        ),
-        this.props.mutationErrors.map(
-          err => createElement(ErrorBox, {key: err.key, error: err, onDismiss: this.props.onDismissMutationError}),
-        ),
-      );
+  componentDidMount() {
+    this._renderErrors(this.props);
+  }
+  componentWillReceiveProps(newProps) {
+    if (
+      newProps.networkErrors !== this.props.networkErrors ||
+      newProps.mutationErrors !== this.props.mutationErrors
+    ) {
+      this._renderErrors(newProps);
     }
+  }
+  _renderErrors(props) {
+    if (this._errorContainer) {
+      document.body.removeChild(this._errorContainer);
+      this._errorContainer = null;
+    }
+    if (props.networkErrors.length || props.mutationErrors.length) {
+      this._errorContainer = document.createElement('div');
+      this._errorContainer.setAttribute('style', [
+        'position: fixed;',
+        'top: 0;',
+        'left: 0;',
+        'right: 0;',
+        'bottom: 0;',
+        'background: rgba(0, 0, 0, 0.8);',
+        'z-index: 99999;'
+      ].join(''));
+      props.networkErrors.forEach(
+        err => this._errorContainer.appendChild(createErrorBox(err, props.onDismissNetworkError)),
+      );
+      props.mutationErrors.forEach(
+        err => this._errorContainer.appendChild(createErrorBox(err, props.onDismissMutationError)),
+      );
+      document.body.appendChild(this._errorContainer);
+    }
+  }
+  render() {
     return Children.only(this.props.children);
   }
 }

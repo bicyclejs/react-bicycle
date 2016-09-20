@@ -11,13 +11,13 @@
     "hoist-non-react-statics": "^1.0.3"
   },
   "devDependencies": {
-    "babel-cli": "^6.3.17",
-    "babel-preset-forbeslindesay": "^1.0.0",
-    "babelify": "^7.3.0",
+    "babel-cli": "*",
+    "babel-preset-forbeslindesay": "*",
+    "babelify": "*",
     "bicycle": "0.2.3",
     "browserify-middleware": "^7.0.0",
-    "eslint": "^1.10.3",
-    "eslint-config-forbeslindesay": "^1.0.0",
+    "eslint": "*",
+    "eslint-config-forbeslindesay": "*",
     "express": "^4.14.0",
     "react": "^0.14.3",
     "react-dom": "^15.2.1",
