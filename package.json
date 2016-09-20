@@ -1,6 +1,6 @@
 {
   "name": "react-bicycle",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "main": "lib/index.js",
   "description": "React bindings for the bicycle data synchronisation library",
   "keywords": [],
