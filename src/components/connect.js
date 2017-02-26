@@ -28,6 +28,9 @@ export default function (getQuery, getEventHandlers, options = EMPTY_OBJECT) {
         }
 
         this._query = getQuery ? getQuery(props) : EMPTY_OBJECT;
+        if (this._query == null) {
+          this._query = EMPTY_OBJECT;
+        }
         const {result, loaded, errors, errorDetails} = this._client.queryCache(this._query);
         this.state = {result, loaded, errors, errorDetails};
         this._isLoaded = (value, path) => {
@@ -48,7 +51,10 @@ export default function (getQuery, getEventHandlers, options = EMPTY_OBJECT) {
         this._subscription = this._client.subscribe(this._query, this._onUpdate);
       }
       componentWillReceiveProps(nextProps) {
-        const newQuery = getQuery ? getQuery(nextProps) : EMPTY_OBJECT;
+        let newQuery = getQuery ? getQuery(nextProps) : EMPTY_OBJECT;
+        if (newQuery == null) {
+          newQuery = EMPTY_OBJECT;
+        }
         if (notEqual(this._query, newQuery)) {
           this._subscription.unsubscribe();
           this._query = newQuery;
