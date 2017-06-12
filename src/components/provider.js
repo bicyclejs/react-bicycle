@@ -1,4 +1,5 @@
-import {Component, PropTypes, Children, createElement} from 'react';
+import {Component, Children, createElement} from 'react';
+import PropTypes from 'prop-types';
 import clientShape from '../client-shape';
 
 // prevent this code loading in production
