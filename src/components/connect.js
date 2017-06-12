@@ -62,7 +62,9 @@ export default function (getQuery, getEventHandlers, options = EMPTY_OBJECT) {
         }
       }
       componentWillUnmount() {
-        this._subscription.unsubscribe();
+        if (this._subscription) {
+          this._subscription.unsubscribe();
+        }
       }
       _onUpdate(result, loaded, errors, errorDetails) {
         this.setState({result, loaded, errors, errorDetails});
