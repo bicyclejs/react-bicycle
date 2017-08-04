@@ -1,6 +1,6 @@
 {
   "name": "react-bicycle",
-  "version": "3.0.0-rc.3",
+  "version": "3.0.0-rc.4",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "description": "React bindings for the bicycle data synchronisation library",
