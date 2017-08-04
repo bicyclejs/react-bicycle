@@ -1,34 +1,63 @@
-import {Component, createElement} from 'react';
-import hoistStatics from 'hoist-non-react-statics';
+import * as React from 'react';
+import BicycleClient, {Subscription} from 'bicycle/client';
 import clientShape from '../client-shape';
+const hoistStatics = require('hoist-non-react-statics');
 
-function getDisplayName(WrappedComponent) {
+function getDisplayName(WrappedComponent: any): string {
   return WrappedComponent.displayName || WrappedComponent.name || 'Component';
 }
 
 const EMPTY_OBJECT = {};
-const EMPTY_ARRAY = [];
-function noop() {}
-export default function connectErrors(options = EMPTY_OBJECT) {
-  return WrappedComponent => {
+const EMPTY_ARRAY: ReadonlyArray<any> = [];
+
+export interface Options {
+  ignoreNetworkErrors?: boolean;
+  ignoreMutationErrors?: boolean;
+}
+
+declare global {
+  interface Error {
+    key?: string;
+  }
+}
+export type Component<Props> = React.ComponentClass<Props> | React.StatelessComponent<Props>;
+
+interface State {
+  networkErrors: ReadonlyArray<Error>,
+  mutationErrors: ReadonlyArray<Error>,
+  requestInFlight: boolean,
+}
+export interface InjectedProps {
+  networkErrors: ReadonlyArray<Error>,
+  mutationErrors: ReadonlyArray<Error>,
+  requestInFlight: boolean,
+  onDismissNetworkError: (err: Error) => any,
+  onDismissMutationError: (err: Error) => any,
+}
+export default function connectErrors(options: Options = EMPTY_OBJECT) {
+  return <OriginalProps extends {}>(WrappedComponent: Component<InjectedProps & OriginalProps>): React.ComponentClass<OriginalProps> => {
     let key = 0;
-    class Connect extends Component {
-      constructor(props, context) {
+    class Connect extends React.Component<OriginalProps, State> {
+      static displayName = `ConnectErrors(${getDisplayName(WrappedComponent)})`;
+      static WrappedComponent = WrappedComponent;
+      static contextTypes = {
+        bicycleClient: clientShape,
+      };
+      _client: BicycleClient<any>;
+      _networkErrorsSubscription: Subscription | void;
+      _mutationErrorsSubscription: Subscription | void;
+      _queueRequestSubscription: Subscription | void;
+      _successfulResponseSubscription: Subscription | void;
+      constructor(props: any, context: any) {
         super(props, context);
-        this._onNetworkError = options.ignoreNetworkErrors ? noop : this._onNetworkError.bind(this);
-        this._onMutationError = options.ignoreMutationErrors ? noop : this._onMutationError.bind(this);
-        this._onQueueRequest = this._onQueueRequest.bind(this);
-        this._onSuccessfulResponse = this._onSuccessfulResponse.bind(this);
-        this._dismissNetworkError = this._dismissNetworkError.bind(this);
-        this._dismissMutationError = this._dismissMutationError.bind(this);
         this._client = props.client || context.bicycleClient;
 
         if (!this._client) {
           throw new Error(
             `Could not find "client" in either the context or ` +
-            `props of "${this.constructor.displayName}". ` +
+            `props of "${Connect.displayName}". ` +
             `Either wrap the root component in a <Provider>, ` +
-            `or explicitly pass "client" as a prop to "${this.constructor.displayName}".`
+            `or explicitly pass "client" as a prop to "${Connect.displayName}".`
           );
         }
         this.state = {networkErrors: [], mutationErrors: [], requestInFlight: false};
@@ -42,8 +71,12 @@ export default function connectErrors(options = EMPTY_OBJECT) {
         }
       }
       componentWillUnmount() {
-        this._networkErrorsSubscription.unsubscribe();
-        this._mutationErrorsSubscription.unsubscribe();
+        if (this._networkErrorsSubscription) {
+          this._networkErrorsSubscription.unsubscribe();
+        }
+        if (this._mutationErrorsSubscription) {
+          this._mutationErrorsSubscription.unsubscribe();
+        }
         if (this._queueRequestSubscription) {
           this._queueRequestSubscription.unsubscribe();
         }
@@ -51,38 +84,44 @@ export default function connectErrors(options = EMPTY_OBJECT) {
           this._successfulResponseSubscription.unsubscribe();
         }
       }
-      _onNetworkError(err) {
+      _onNetworkError = (err: Error) => {
+        if (options.ignoreNetworkErrors) {
+          return;
+        }
         err.key = 'network_error_key_' + (key++);
         this.setState({networkErrors: this.state.networkErrors.concat([err])});
       }
-      _onMutationError(err) {
+      _onMutationError = (err: Error) => {
+        if (options.ignoreMutationErrors) {
+          return;
+        }
         err.key = 'mutation_error_key_' + (key++);
         this.setState({mutationErrors: this.state.mutationErrors.concat([err])});
       }
-      _onQueueRequest() {
+      _onQueueRequest = () => {
         this.setState({requestInFlight: true});
       }
-      _onSuccessfulResponse(pendingMutations) {
+      _onSuccessfulResponse = (pendingMutations: number) => {
         this.setState({
           networkErrors: EMPTY_ARRAY,
           requestInFlight: pendingMutations !== 0,
         });
       }
-      _dismissNetworkError({key}) {
+      _dismissNetworkError = ({key}: {key: string}) => {
         const networkErrors = this.state.networkErrors.filter(err => err.key !== key);
         this.setState({
           networkErrors: networkErrors.length ? networkErrors : EMPTY_ARRAY,
         });
       }
-      _dismissMutationError({key}) {
+      _dismissMutationError = ({key}: {key: string}) => {
         const mutationErrors = this.state.mutationErrors.filter(err => err.key !== key);
         this.setState({
           mutationErrors: mutationErrors.length ? mutationErrors : EMPTY_ARRAY,
         });
       }
       render() {
-        return this._previousElement = createElement(WrappedComponent, {
-          ...this.props,
+        return React.createElement((WrappedComponent as React.ComponentClass<OriginalProps & InjectedProps>), {
+          ...(this.props as any),
           networkErrors: this.state.networkErrors,
           mutationErrors: this.state.mutationErrors,
           requestInFlight: this.state.requestInFlight,
@@ -92,14 +131,6 @@ export default function connectErrors(options = EMPTY_OBJECT) {
       }
     }
 
-    Connect.displayName = `ConnectErrors(${getDisplayName(WrappedComponent)})`;
-    Connect.WrappedComponent = WrappedComponent;
-    Connect.contextTypes = {
-      bicycleClient: clientShape,
-    };
-    Connect.propTypes = {
-      client: clientShape,
-    };
     return hoistStatics(Connect, WrappedComponent);
   };
 }

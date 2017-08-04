@@ -1,7 +1,7 @@
-import {Component, Children} from 'react';
-import connectErrors from './connect-errors';
+import * as React from 'react';
+import connectErrors, {InjectedProps} from './connect-errors';
 
-function createErrorBox(error, onDismiss) {
+function createErrorBox(error: Error, onDismiss: (error: Error) => any) {
   const div = document.createElement('div');
   div.setAttribute('style', [
     'white-space: pre-wrap;',
@@ -40,11 +40,13 @@ function createErrorBox(error, onDismiss) {
   return div;
 }
 
-class Errors extends Component {
+export interface Props {}
+export class Errors extends React.Component<Props & InjectedProps> {
+  _errorContainer: HTMLDivElement | void;
   componentDidMount() {
     this._renderErrors(this.props);
   }
-  componentWillReceiveProps(newProps) {
+  componentWillReceiveProps(newProps: Props & InjectedProps) {
     if (
       newProps.networkErrors !== this.props.networkErrors ||
       newProps.mutationErrors !== this.props.mutationErrors
@@ -52,14 +54,15 @@ class Errors extends Component {
       this._renderErrors(newProps);
     }
   }
-  _renderErrors(props) {
+  _renderErrors(props: Props & InjectedProps) {
     if (this._errorContainer) {
       document.body.removeChild(this._errorContainer);
-      this._errorContainer = null;
+      this._errorContainer = undefined;
     }
     if (props.networkErrors.length || props.mutationErrors.length) {
-      this._errorContainer = document.createElement('div');
-      this._errorContainer.setAttribute('style', [
+      const errorContainer = this._errorContainer = document.createElement('div');
+      
+      errorContainer.setAttribute('style', [
         'position: fixed;',
         'top: 0;',
         'left: 0;',
@@ -69,17 +72,17 @@ class Errors extends Component {
         'z-index: 99999;',
       ].join(''));
       props.networkErrors.forEach(
-        err => this._errorContainer.appendChild(createErrorBox(err, props.onDismissNetworkError)),
+        err => errorContainer.appendChild(createErrorBox(err, props.onDismissNetworkError)),
       );
       props.mutationErrors.forEach(
-        err => this._errorContainer.appendChild(createErrorBox(err, props.onDismissMutationError)),
+        err => errorContainer.appendChild(createErrorBox(err, props.onDismissMutationError)),
       );
       document.body.appendChild(this._errorContainer);
     }
   }
   render() {
-    return Children.only(this.props.children);
+    return React.Children.only(this.props.children);
   }
 }
 
-export default connectErrors()(Errors);
+export default connectErrors()<Props>(Errors);
