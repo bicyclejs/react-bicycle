@@ -20,7 +20,8 @@ declare global {
     key?: string;
   }
 }
-export type Component<Props> = React.ComponentClass<Props> | React.StatelessComponent<Props>;
+
+export type Component<Props> = React.ComponentClass<Props> | React.StatelessComponent<Props> | ((props: Props & { children?: React.ReactNode }, context?: any) => React.ReactElement<any> | null);
 
 interface State {
   networkErrors: ReadonlyArray<Error>,

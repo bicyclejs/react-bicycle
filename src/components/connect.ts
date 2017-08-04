@@ -20,7 +20,7 @@ function getDisplayName(WrappedComponent: any): string {
   return WrappedComponent.displayName || WrappedComponent.name || 'Component';
 }
 
-export type Component<Props> = React.ComponentClass<Props> | React.StatelessComponent<Props>;
+export type Component<Props> = React.ComponentClass<Props> | React.StatelessComponent<Props> | ((props: Props & { children?: React.ReactNode }, context?: any) => React.ReactElement<any> | null);
 export interface ConnectResultProps<QueryResult> {
   result: QueryResult,
   loaded: boolean,
