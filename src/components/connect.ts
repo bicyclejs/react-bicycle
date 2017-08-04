@@ -1,5 +1,5 @@
 import * as React from 'react';
-import PropTypes from 'prop-types';
+import * as PropTypes from 'prop-types';
 import notEqual from 'bicycle/utils/not-equal';
 import Query from 'bicycle/types/Query';
 import {BaseRootQuery} from 'bicycle/typed-helpers/query';
