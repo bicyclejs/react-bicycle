@@ -48,10 +48,33 @@ function subscribe<Result>(
     return client.subscribe(query, onUpdate);
   }
 }
-export default function <OriginalProps extends {}, QueryResult, InjectedEventHandlers>(
+
+// only a query + optional options
+function connect<OriginalProps extends {}, QueryResult>(
+  WrappedComponent: Component<OriginalProps & ConnectResultProps<QueryResult>>,
+  getQuery: GetQuery<OriginalProps, QueryResult>,
+  getEventHandlers?: void,
+  options?: Options<OriginalProps & ConnectResultProps<QueryResult>>,
+): React.ComponentClass<OriginalProps>;
+// only event handlers + optional options
+function connect<OriginalProps extends {}, InjectedEventHandlers>(
+  WrappedComponent: Component<OriginalProps>,
+  getQuery: void,
+  getEventHandlers: GetEventHandlers<OriginalProps, InjectedEventHandlers>,
+  options?: Options<OriginalProps & InjectedEventHandlers>,
+): React.ComponentClass<OriginalProps>;
+// both event handlers and query result
+function connect<OriginalProps extends {}, QueryResult, InjectedEventHandlers>(
   WrappedComponent: Component<OriginalProps & InjectedEventHandlers & ConnectResultProps<QueryResult>>,
-  getQuery?: GetQuery<OriginalProps, QueryResult>,
-  getEventHandlers?: GetEventHandlers<OriginalProps, InjectedEventHandlers>,
+  getQuery: GetQuery<OriginalProps, QueryResult>,
+  getEventHandlers: GetEventHandlers<OriginalProps, InjectedEventHandlers>,
+  options?: Options<OriginalProps & InjectedEventHandlers & ConnectResultProps<QueryResult>>,
+): React.ComponentClass<OriginalProps>;
+
+function connect<OriginalProps extends {}, QueryResult, InjectedEventHandlers>(
+  WrappedComponent: Component<OriginalProps & InjectedEventHandlers & ConnectResultProps<QueryResult>>,
+  getQuery?: GetQuery<OriginalProps, QueryResult> | void,
+  getEventHandlers?: GetEventHandlers<OriginalProps, InjectedEventHandlers> | void,
   options: Options<OriginalProps & InjectedEventHandlers & ConnectResultProps<QueryResult>> = EMPTY_OBJECT,
 ): React.ComponentClass<OriginalProps> {
   class Connect extends React.Component<OriginalProps, QueryCacheResult<QueryResult>> {
@@ -167,3 +190,5 @@ export default function <OriginalProps extends {}, QueryResult, InjectedEventHan
   }
   return hoistStatics(Connect, WrappedComponent);
 }
+
+export default connect;
