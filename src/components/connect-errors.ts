@@ -1,11 +1,8 @@
 import * as React from 'react';
 import BicycleClient, {Subscription} from 'bicycle/client';
 import clientShape from '../client-shape';
+import Component, {getDisplayName} from '../component-class';
 const hoistStatics = require('hoist-non-react-statics');
-
-function getDisplayName(WrappedComponent: any): string {
-  return WrappedComponent.displayName || WrappedComponent.name || 'Component';
-}
 
 const EMPTY_OBJECT = {};
 const EMPTY_ARRAY: ReadonlyArray<any> = [];
@@ -20,8 +17,6 @@ declare global {
     key?: string;
   }
 }
-
-export type Component<Props> = React.ComponentClass<Props> | React.StatelessComponent<Props> | ((props: Props & { children?: React.ReactNode }, context?: any) => React.ReactElement<any> | null);
 
 interface State {
   networkErrors: ReadonlyArray<Error>,

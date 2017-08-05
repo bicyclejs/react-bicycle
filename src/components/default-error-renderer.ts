@@ -85,4 +85,4 @@ export class Errors extends React.Component<Props & InjectedProps> {
   }
 }
 
-export default connectErrors()<Props>(Errors);
+export default connectErrors()(Errors);

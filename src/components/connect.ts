@@ -6,6 +6,7 @@ import {BaseRootQuery} from 'bicycle/typed-helpers/query';
 import BicycleClient, {QueryCacheResult, Subscription} from 'bicycle/client';
 import ErrorResult from 'bicycle/types/ErrorResult';
 import clientShape from '../client-shape';
+import Component, {getDisplayName} from '../component-class';
 
 const hoistStatics = require('hoist-non-react-statics');
 
@@ -16,11 +17,6 @@ export interface Options<Props> {
   renderErrors?: boolean | Component<Props>;
 }
 
-function getDisplayName(WrappedComponent: any): string {
-  return WrappedComponent.displayName || WrappedComponent.name || 'Component';
-}
-
-export type Component<Props> = React.ComponentClass<Props> | React.StatelessComponent<Props> | ((props: Props & { children?: React.ReactNode }, context?: any) => React.ReactElement<any> | null);
 export interface ConnectResultProps<QueryResult> {
   result: QueryResult,
   loaded: boolean,
