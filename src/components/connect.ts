@@ -263,3 +263,16 @@ export default class Connect<QueryResult> extends React.Component<
     return (this._previousElement = this._render());
   }
 }
+
+export function query<QueryResult>(
+  query: Props<QueryResult>["query"],
+  children: Props<QueryResult>["children"],
+  options?: Pick<Props<QueryResult>, "renderLoading" | "renderErrors">
+) {
+  const C: React.ComponentClass<Props<QueryResult>> = Connect;
+  return React.createElement(C, {
+    query,
+    children,
+    ...options
+  });
+}
