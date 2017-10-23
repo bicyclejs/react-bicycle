@@ -1,36 +1,27 @@
-import * as React from 'react';
-import * as PropTypes from 'prop-types';
-import notEqual from 'bicycle/utils/not-equal';
-import Query from 'bicycle/types/Query';
-import {BaseRootQuery} from 'bicycle/typed-helpers/query';
-import BicycleClient, {QueryCacheResult, Subscription} from 'bicycle/client';
-import ErrorResult from 'bicycle/types/ErrorResult';
-import clientShape from '../client-shape';
-import Component, {getDisplayName} from '../component-class';
+import * as React from "react";
+import * as PropTypes from "prop-types";
+import notEqual from "bicycle/utils/not-equal";
+import Query from "bicycle/types/Query";
+import { BaseRootQuery } from "bicycle/typed-helpers/query";
+import BicycleClient, { QueryCacheResult, Subscription } from "bicycle/client";
+import ErrorResult from "bicycle/types/ErrorResult";
+import clientShape from "../client-shape";
 
-const hoistStatics = require('hoist-non-react-statics');
+export { PropTypes };
 
-export type GetQuery<Props, QueryResult> = (props: Props) => BaseRootQuery<QueryResult> | Query;
-export type GetEventHandlers<Props, EventHandlers> = (client: any, props: Props) => EventHandlers;
-export interface Options<Props> {
-  renderLoading?: boolean | Component<Props>;
-  renderErrors?: boolean | Component<Props>;
-}
+const errorStyle = {
+  whiteSpace: "pre-wrap",
+  fontFamily: "monospace",
+  fontSize: "18px",
+  padding: "9px",
+  background: "#900000",
+  color: "white"
+};
 
-export interface ConnectResultProps<QueryResult> {
-  result: QueryResult,
-  loaded: boolean,
-  errors: ReadonlyArray<string>,
-  errorDetails: ReadonlyArray<ErrorResult>,
-  isLoaded(path: string): boolean;
-  isLoaded(value: any, path: string): boolean;
-  WrappedComponent: any,
-  previousElement: React.ReactNode;
-}
-export type ConnectProps<QueryResult, EventHandlers = {}> = ConnectResultProps<QueryResult> & EventHandlers;
-const EMPTY_OBJECT = {};
-
-function queryCache<Result>(client: BicycleClient<any>, query: Query | BaseRootQuery<Result>): QueryCacheResult<Result> {
+function queryCache<Result>(
+  client: BicycleClient<any>,
+  query: Query | BaseRootQuery<Result>
+): QueryCacheResult<Result> {
   if (query instanceof BaseRootQuery) {
     return client.queryCache(query);
   } else {
@@ -40,7 +31,12 @@ function queryCache<Result>(client: BicycleClient<any>, query: Query | BaseRootQ
 function subscribe<Result>(
   client: BicycleClient<any>,
   query: Query | BaseRootQuery<Result>,
-  onUpdate: (result: Result, loaded: boolean, errors: string[], errorDetails: ReadonlyArray<ErrorResult>) => any,
+  onUpdate: (
+    result: Result,
+    loaded: boolean,
+    errors: string[],
+    errorDetails: ReadonlyArray<ErrorResult>
+  ) => any
 ): Subscription {
   if (query instanceof BaseRootQuery) {
     return client.subscribe(query, onUpdate);
@@ -49,146 +45,221 @@ function subscribe<Result>(
   }
 }
 
-// only a query + optional options
-function connect<OriginalProps extends {}, QueryResult>(
-  WrappedComponent: Component<OriginalProps & ConnectResultProps<QueryResult>>,
-  getQuery: GetQuery<OriginalProps, QueryResult>,
-  getEventHandlers?: void,
-  options?: Options<OriginalProps & ConnectResultProps<QueryResult>>,
-): React.ComponentClass<OriginalProps>;
-// only event handlers + optional options
-function connect<OriginalProps extends {}, InjectedEventHandlers>(
-  WrappedComponent: Component<OriginalProps>,
-  getQuery: void,
-  getEventHandlers: GetEventHandlers<OriginalProps, InjectedEventHandlers>,
-  options?: Options<OriginalProps & InjectedEventHandlers>,
-): React.ComponentClass<OriginalProps>;
-// both event handlers and query result
-function connect<OriginalProps extends {}, QueryResult, InjectedEventHandlers>(
-  WrappedComponent: Component<OriginalProps & InjectedEventHandlers & ConnectResultProps<QueryResult>>,
-  getQuery: GetQuery<OriginalProps, QueryResult>,
-  getEventHandlers: GetEventHandlers<OriginalProps, InjectedEventHandlers>,
-  options?: Options<OriginalProps & InjectedEventHandlers & ConnectResultProps<QueryResult>>,
-): React.ComponentClass<OriginalProps>;
+export interface Props<QueryResult> {
+  query: BaseRootQuery<QueryResult>;
+  children: (
+    result: QueryResult,
+    client: BicycleClient,
+    status: {
+      result: QueryResult;
+      loaded: boolean;
+      errors: ReadonlyArray<string>;
+      errorDetails: ReadonlyArray<ErrorResult>;
+      previousElement: React.ReactNode;
+      loadingDuration: number;
+    }
+  ) => JSX.Element | null | false;
+  renderLoading?:
+    | boolean
+    | ((
+        loadingDuration: number,
+        client: BicycleClient,
+        status: {
+          result: QueryResult;
+          loaded: boolean;
+          errors: ReadonlyArray<string>;
+          errorDetails: ReadonlyArray<ErrorResult>;
+          previousElement: React.ReactNode;
+          loadingDuration: number;
+        }
+      ) => JSX.Element | null | false);
+  renderErrors?:
+    | boolean
+    | ((
+        errors: ReadonlyArray<string>,
+        client: BicycleClient,
+        status: {
+          result: QueryResult;
+          loaded: boolean;
+          errors: ReadonlyArray<string>;
+          errorDetails: ReadonlyArray<ErrorResult>;
+          previousElement: React.ReactNode;
+          loadingDuration: number;
+        }
+      ) => JSX.Element | null | false);
+}
+export interface State<QueryResult> extends QueryCacheResult<QueryResult> {
+  loadingDuration: number;
+}
 
-function connect<OriginalProps extends {}, QueryResult, InjectedEventHandlers>(
-  WrappedComponent: Component<OriginalProps & InjectedEventHandlers & ConnectResultProps<QueryResult>>,
-  getQuery?: GetQuery<OriginalProps, QueryResult> | void,
-  getEventHandlers?: GetEventHandlers<OriginalProps, InjectedEventHandlers> | void,
-  options: Options<OriginalProps & InjectedEventHandlers & ConnectResultProps<QueryResult>> = EMPTY_OBJECT,
-): React.ComponentClass<OriginalProps> {
-  class Connect extends React.Component<OriginalProps, QueryCacheResult<QueryResult>> {
-    static displayName = `Connect(${getDisplayName(WrappedComponent)})`;
-    static WrappedComponent = WrappedComponent;
-    static contextTypes = {
-      bicycleClient: clientShape,
-      bicycleRenderLoading: PropTypes.oneOfType([
-        PropTypes.any, // Component
-        PropTypes.bool,
-      ]),
-      bicycleRenderErrors: PropTypes.oneOfType([
-        PropTypes.any, // Component
-        PropTypes.bool,
-      ]),
-    };
-    private _client: BicycleClient<any>;
-    private _query: BaseRootQuery<QueryResult> | Query | void;
-    private _subscription: Subscription | void;
-    private _previousElement: React.ReactNode | void;
-    private _renderLoading: true | Component<OriginalProps & InjectedEventHandlers & ConnectResultProps<QueryResult>>;
-    private _renderErrors: true | Component<OriginalProps & InjectedEventHandlers & ConnectResultProps<QueryResult>>;
-    constructor(props: OriginalProps, context: any) {
-      super(props, context);
-      this._client = context.bicycleClient;
-      this._renderLoading = options.renderLoading || context.bicycleRenderLoading || true;
-      this._renderErrors = options.renderErrors || context.bicycleRenderErrors || true;
+const loadingComponents: Connect<any>[] = [];
+setInterval(() => {
+  const now = Date.now();
+  for (let i = 0; i < loadingComponents.length; i++) {
+    const start = loadingComponents[i]._startLoadingTime;
+    loadingComponents[i].setState({
+      loadingDuration: start ? now - start : 0
+    });
+  }
+}, 100);
 
-      if (!this._client) {
-        throw new Error(
-          `Could not find "client" in either the context or ` +
-          `props of "${Connect.displayName}". ` +
+export default class Connect<QueryResult> extends React.Component<
+  Props<QueryResult>,
+  State<QueryResult>
+> {
+  static contextTypes = {
+    bicycleClient: clientShape
+  };
+  private _client: BicycleClient<any>;
+  private _query: BaseRootQuery<QueryResult> | void;
+  private _subscription: Subscription | void;
+  private _previousElement: React.ReactNode = null;
+
+  public _startLoadingTime: number | null = null;
+
+  constructor(props: Props<QueryResult>, context: any) {
+    super(props, context);
+    this._client = context.bicycleClient;
+
+    if (!this._client) {
+      throw new Error(
+        `Could not find "client" in either the context or ` +
+          `props of Connect. ` +
           `Either wrap the root component in a <Provider>, ` +
-          `or explicitly pass "client" as a prop to "${Connect.displayName}".`
-        );
-      }
+          `or explicitly pass "client" as a prop to Connect.`
+      );
+    }
 
-      this._query = (getQuery ? getQuery(props) : undefined) || undefined;
+    this._query = this.props.query;
 
-      const {result, loaded, errors, errorDetails} = this._query ? queryCache(this._client, this._query) : {result: (undefined as any), loaded: true, errors: [], errorDetails: []};
-      this.state = {result, loaded, errors, errorDetails};
+    const { result, loaded, errors, errorDetails } = this._query
+      ? queryCache(this._client, this._query)
+      : {
+          result: undefined as any,
+          loaded: true,
+          errors: [],
+          errorDetails: []
+        };
+    this.state = { result, loaded, errors, errorDetails, loadingDuration: 0 };
+  }
+  componentDidMount() {
+    if (this._query) {
+      this._subscription = subscribe(this._client, this._query, this._onUpdate);
     }
-    componentDidMount() {
-      if (this._query) {
-        this._subscription = subscribe(this._client, this._query, this._onUpdate);
-      }
-    }
-    componentWillReceiveProps(nextProps: OriginalProps) {
-      const newQuery = (getQuery ? getQuery(nextProps) : undefined) || undefined;
-      if (!newQuery) {
-        if (this._subscription) {
-          this._subscription.unsubscribe();
-        }
-      } else if (
-        !this._query ||
-        notEqual(
-          this._query instanceof BaseRootQuery ? this._query._query : this._query,
-          newQuery instanceof BaseRootQuery ? newQuery._query : newQuery,
-        )
-      ) {
-        if (this._subscription) {
-          this._subscription.unsubscribe();
-        }
-        this._query = newQuery;
-        if (this._query) {
-          this._subscription = subscribe(this._client, this._query, this._onUpdate);
-        }
-      }
-    }
-    componentWillUnmount() {
+  }
+  componentWillReceiveProps(nextProps: Props<QueryResult>) {
+    const newQuery = nextProps.query;
+    if (!newQuery) {
       if (this._subscription) {
         this._subscription.unsubscribe();
       }
-    }
-    _onUpdate = (result: QueryResult, loaded: boolean, errors: ReadonlyArray<string>, errorDetails: ReadonlyArray<ErrorResult>) => {
-      this.setState({result, loaded, errors, errorDetails});
-    }
-    _isLoaded = (value: any, path?: string) => {
-      if (typeof path === 'undefined') {
-        [value, path] = [this.state.result, value];
+    } else if (
+      !this._query ||
+      notEqual(
+        this._query instanceof BaseRootQuery ? this._query._query : this._query,
+        newQuery instanceof BaseRootQuery ? newQuery._query : newQuery
+      )
+    ) {
+      if (this._subscription) {
+        this._subscription.unsubscribe();
       }
-      for (const key of (path as any).split('.')) {
-        if (value === undefined) {
-          return false;
-        } else {
-          value = value[key];
-        }
+      this._query = newQuery;
+      if (this._query) {
+        this._subscription = subscribe(
+          this._client,
+          this._query,
+          this._onUpdate
+        );
       }
-      return value !== undefined;
-    };
-    render() {
-      let ComponentToRender = WrappedComponent;
-      if (typeof this._renderErrors !== 'boolean' && this.state.errors.length) {
-        ComponentToRender = this._renderErrors;
-      } else if (typeof this._renderLoading !== 'boolean' && !this.state.loaded) {
-        ComponentToRender = this._renderLoading;
-      }
-      const eventHandlers = getEventHandlers ? getEventHandlers(this._client, this.props) : EMPTY_OBJECT;
-      const previousElement = this._previousElement;
-      return this._previousElement = React.createElement((ComponentToRender as any), {
-        ...(this.props as any),
-        ...((this.state.result || {}) as any),
-        ...eventHandlers,
-        result: this.state.result,
-        loaded: this.state.loaded,
-        errors: this.state.errors,
-        errorDetails: this.state.errorDetails,
-        isLoaded: this._isLoaded,
-        WrappedComponent,
-        previousElement,
-      });
     }
   }
-  return hoistStatics(Connect, WrappedComponent);
-}
+  componentWillUnmount() {
+    if (this._subscription) {
+      this._subscription.unsubscribe();
+    }
+    const index = loadingComponents.indexOf(this);
+    if (index !== -1) {
+      loadingComponents.splice(index, 1);
+    }
+  }
+  _onUpdate = (
+    result: QueryResult,
+    loaded: boolean,
+    errors: ReadonlyArray<string>,
+    errorDetails: ReadonlyArray<ErrorResult>
+  ) => {
+    if (loaded) {
+      if (this._startLoadingTime !== null) {
+        this._startLoadingTime = null;
+        const index = loadingComponents.indexOf(this);
+        if (index !== -1) {
+          loadingComponents.splice(index, 1);
+        }
+      }
+    } else {
+      if (this._startLoadingTime === null) {
+        this._startLoadingTime = Date.now();
+        loadingComponents.push(this);
+      }
+    }
+    this.setState({
+      result,
+      loaded,
+      errors,
+      errorDetails,
+      loadingDuration: this._startLoadingTime
+        ? Date.now() - this._startLoadingTime
+        : 0
+    });
+  };
+  _render() {
+    if (this.state.errors.length && this.props.renderErrors !== true) {
+      if (this.props.renderErrors === false) {
+        return null;
+      } else if (typeof this.props.renderErrors === "function") {
+        return this.props.renderErrors(this.state.errors, this.context.client, {
+          ...this.state,
+          previousElement: this._previousElement
+        });
+        // TODO: allow using context to set error renderer
+      } else {
+        return React.createElement(
+          "div",
+          {},
+          this.state.errors.map((err, i) =>
+            React.createElement("div", { key: i, style: errorStyle }, err + "")
+          )
+        );
+      }
+    }
 
-export default connect;
+    if (!this.state.loaded && this.props.renderLoading !== true) {
+      if (this.props.renderLoading === false) {
+        return null;
+      } else if (typeof this.props.renderLoading === "function") {
+        return this.props.renderLoading(
+          this.state.loadingDuration,
+          this.context.client,
+          {
+            ...this.state,
+            previousElement: this._previousElement
+          }
+        );
+        // TODO: allow using context to set loading renderer
+      } else {
+        if (this.state.loadingDuration > 1000) {
+          return React.createElement("div", {}, "Loading...");
+        } else {
+          return null;
+        }
+      }
+    }
+    return this.props.children(this.state.result, this.context.client, {
+      ...this.state,
+      previousElement: this._previousElement
+    });
+  }
+  render() {
+    return (this._previousElement = this._render());
+  }
+}
