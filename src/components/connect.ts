@@ -58,7 +58,7 @@ export interface Props<QueryResult> {
       previousElement: React.ReactNode;
       loadingDuration: number;
     }
-  ) => JSX.Element | null | false;
+  ) => React.ReactNode;
   renderLoading?:
     | boolean
     | ((
@@ -72,7 +72,7 @@ export interface Props<QueryResult> {
           previousElement: React.ReactNode;
           loadingDuration: number;
         }
-      ) => JSX.Element | null | false);
+      ) => React.ReactNode);
   renderErrors?:
     | boolean
     | ((
@@ -86,7 +86,7 @@ export interface Props<QueryResult> {
           previousElement: React.ReactNode;
           loadingDuration: number;
         }
-      ) => JSX.Element | null | false);
+      ) => React.ReactNode);
 }
 export interface State<QueryResult> extends QueryCacheResult<QueryResult> {
   loadingDuration: number;
@@ -260,7 +260,7 @@ export default class Connect<QueryResult> extends React.Component<
     });
   }
   render() {
-    return (this._previousElement = this._render());
+    return (this._previousElement = this._render()) as any;
   }
 }
 
