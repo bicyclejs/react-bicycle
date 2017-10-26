@@ -107,6 +107,7 @@ export default class Connect<QueryResult> extends React.Component<
   Props<QueryResult>,
   State<QueryResult>
 > {
+  context: { bicycleClient: BicycleClient };
   static contextTypes = {
     bicycleClient: clientShape
   };
@@ -217,10 +218,14 @@ export default class Connect<QueryResult> extends React.Component<
       if (this.props.renderErrors === false) {
         return null;
       } else if (typeof this.props.renderErrors === "function") {
-        return this.props.renderErrors(this.state.errors, this.context.client, {
-          ...this.state,
-          previousElement: this._previousElement
-        });
+        return this.props.renderErrors(
+          this.state.errors,
+          this.context.bicycleClient,
+          {
+            ...this.state,
+            previousElement: this._previousElement
+          }
+        );
         // TODO: allow using context to set error renderer
       } else {
         return React.createElement(
@@ -239,7 +244,7 @@ export default class Connect<QueryResult> extends React.Component<
       } else if (typeof this.props.renderLoading === "function") {
         return this.props.renderLoading(
           this.state.loadingDuration,
-          this.context.client,
+          this.context.bicycleClient,
           {
             ...this.state,
             previousElement: this._previousElement
@@ -254,7 +259,7 @@ export default class Connect<QueryResult> extends React.Component<
         }
       }
     }
-    return this.props.children(this.state.result, this.context.client, {
+    return this.props.children(this.state.result, this.context.bicycleClient, {
       ...this.state,
       previousElement: this._previousElement
     });
