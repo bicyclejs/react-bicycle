@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 export interface ComponentClass<P = {}> {
-    new (props?: P, context?: any): React.Component<P, any>;
+    new (props: P, context?: any): React.Component<P, any>;
     defaultProps?: Partial<P>;
     displayName?: string;
 }

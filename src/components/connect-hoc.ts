@@ -40,7 +40,7 @@ function queryCache<Result>(client: BicycleClient<any>, query: Query | BaseRootQ
 function subscribe<Result>(
   client: BicycleClient<any>,
   query: Query | BaseRootQuery<Result>,
-  onUpdate: (result: Result, loaded: boolean, errors: string[], errorDetails: ReadonlyArray<ErrorResult>) => any,
+  onUpdate: (result: Result, loaded: boolean, errors: ReadonlyArray<string>, errorDetails: ReadonlyArray<ErrorResult>) => any,
 ): Subscription {
   if (query instanceof BaseRootQuery) {
     return client.subscribe(query, onUpdate);
@@ -92,9 +92,9 @@ function connect<OriginalProps extends {}, QueryResult, InjectedEventHandlers>(
       ]),
     };
     private _client: BicycleClient<any>;
-    private _query: BaseRootQuery<QueryResult> | Query | void;
-    private _subscription: Subscription | void;
-    private _previousElement: React.ReactNode | void;
+    private _query: BaseRootQuery<QueryResult> | Query | undefined;
+    private _subscription: Subscription | undefined;
+    private _previousElement: React.ReactNode | undefined;
     private _renderLoading: true | Component<OriginalProps & InjectedEventHandlers & ConnectResultProps<QueryResult>>;
     private _renderErrors: true | Component<OriginalProps & InjectedEventHandlers & ConnectResultProps<QueryResult>>;
     constructor(props: OriginalProps, context: any) {

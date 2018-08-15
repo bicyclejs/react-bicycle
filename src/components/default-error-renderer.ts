@@ -42,7 +42,7 @@ function createErrorBox(error: Error, onDismiss: (error: Error) => any) {
 
 export interface Props {}
 export class Errors extends React.Component<Props & InjectedProps> {
-  _errorContainer: HTMLDivElement | void;
+  _errorContainer: HTMLDivElement | undefined;
   componentDidMount() {
     this._renderErrors(this.props);
   }

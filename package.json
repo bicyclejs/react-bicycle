@@ -5,7 +5,9 @@
   "types": "lib/index.d.ts",
   "description": "React bindings for the bicycle data synchronisation library",
   "keywords": [],
-  "files": ["lib/"],
+  "files": [
+    "lib/"
+  ],
   "dependencies": {
     "@types/prop-types": "^15.5.1",
     "hoist-non-react-statics": "^1.0.3",
@@ -16,7 +18,7 @@
     "babel-cli": "*",
     "babel-preset-forbeslindesay": "*",
     "babelify": "*",
-    "bicycle": "^4.2.0",
+    "bicycle": "^8.0.0",
     "browserify-middleware": "^7.0.0",
     "eslint": "*",
     "eslint-config-forbeslindesay": "*",
@@ -25,7 +27,7 @@
     "react-dom": "^15.6.1",
     "todomvc-app-css": "^2.0.6",
     "todomvc-common": "^1.0.2",
-    "typescript": "^2.4.2"
+    "typescript": "^3.0.1"
   },
   "peerDependencies": {
     "@types/react": ">=0.14.9",

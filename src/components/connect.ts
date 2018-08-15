@@ -6,6 +6,7 @@ import { BaseRootQuery } from "bicycle/typed-helpers/query";
 import BicycleClient, { QueryCacheResult, Subscription } from "bicycle/client";
 import ErrorResult from "bicycle/types/ErrorResult";
 import clientShape from "../client-shape";
+import DeepPartial from "../DeepPartial";
 
 export { PropTypes };
 
@@ -34,59 +35,56 @@ function subscribe<Result>(
   onUpdate: (
     result: Result,
     loaded: boolean,
-    errors: string[],
+    errors: ReadonlyArray<string>,
     errorDetails: ReadonlyArray<ErrorResult>
   ) => any
 ): Subscription {
   if (query instanceof BaseRootQuery) {
-    return client.subscribe(query, onUpdate);
+    return client.subscribe<Result>(query, onUpdate);
   } else {
     return client.subscribe(query, onUpdate);
   }
 }
 
+export interface Status<QueryResult> {
+  result: DeepPartial<QueryResult>;
+  loaded: boolean;
+  errors: ReadonlyArray<string>;
+  errorDetails: ReadonlyArray<ErrorResult>;
+  previousElement: React.ReactNode;
+  loadingDuration: number;
+}
+
+export type RenderLoaded<QueryResult> = (
+  result: QueryResult,
+  client: BicycleClient,
+  status: Status<QueryResult>
+) => React.ReactNode;
+export type RenderMaybeLoaded<QueryResult> = (
+  result: DeepPartial<QueryResult>,
+  client: BicycleClient,
+  status: Status<QueryResult>
+) => React.ReactNode;
+export type RenderLoading<QueryResult> = (
+  loadingDuration: number,
+  client: BicycleClient,
+  status: Status<QueryResult>
+) => React.ReactNode;
+export type RenderErrors<QueryResult> = (
+  errors: ReadonlyArray<string>,
+  client: BicycleClient,
+  status: Status<QueryResult>
+) => React.ReactNode;
+
 export interface Props<QueryResult> {
   query: BaseRootQuery<QueryResult>;
-  children: (
-    result: QueryResult,
-    client: BicycleClient,
-    status: {
-      result: QueryResult;
-      loaded: boolean;
-      errors: ReadonlyArray<string>;
-      errorDetails: ReadonlyArray<ErrorResult>;
-      previousElement: React.ReactNode;
-      loadingDuration: number;
-    }
-  ) => React.ReactNode;
+  children: RenderLoaded<QueryResult>;
   renderLoading?:
     | boolean
-    | ((
-        loadingDuration: number,
-        client: BicycleClient,
-        status: {
-          result: QueryResult;
-          loaded: boolean;
-          errors: ReadonlyArray<string>;
-          errorDetails: ReadonlyArray<ErrorResult>;
-          previousElement: React.ReactNode;
-          loadingDuration: number;
-        }
-      ) => React.ReactNode);
+    | RenderLoading<QueryResult>;
   renderErrors?:
     | boolean
-    | ((
-        errors: ReadonlyArray<string>,
-        client: BicycleClient,
-        status: {
-          result: QueryResult;
-          loaded: boolean;
-          errors: ReadonlyArray<string>;
-          errorDetails: ReadonlyArray<ErrorResult>;
-          previousElement: React.ReactNode;
-          loadingDuration: number;
-        }
-      ) => React.ReactNode);
+    | RenderErrors<QueryResult>;
 }
 export interface State<QueryResult> extends QueryCacheResult<QueryResult> {
   loadingDuration: number;
@@ -107,13 +105,13 @@ export default class Connect<QueryResult> extends React.Component<
   Props<QueryResult>,
   State<QueryResult>
 > {
-  context: { bicycleClient: BicycleClient };
+  context!: { bicycleClient: BicycleClient };
   static contextTypes = {
     bicycleClient: clientShape
   };
   private _client: BicycleClient<any>;
   private _query: BaseRootQuery<QueryResult> | void;
-  private _subscription: Subscription | void;
+  private _subscription: Subscription | undefined;
   private _previousElement: React.ReactNode = null;
 
   public _startLoadingTime: number | null = null;
@@ -270,10 +268,24 @@ export default class Connect<QueryResult> extends React.Component<
 }
 
 export function query<QueryResult>(
-  query: Props<QueryResult>["query"],
-  children: Props<QueryResult>["children"],
-  options?: Pick<Props<QueryResult>, "renderLoading" | "renderErrors">
-) {
+  query: BaseRootQuery<QueryResult>,
+  children: RenderLoaded<QueryResult>,
+): React.ReactElement<any>;
+export function query<QueryResult>(
+  query: BaseRootQuery<QueryResult>,
+  children: RenderLoaded<QueryResult>,
+  options: {renderLoading?: RenderLoading<QueryResult>, renderErrors?: RenderErrors<QueryResult>}
+): React.ReactElement<any>;
+export function query<QueryResult>(
+  query: BaseRootQuery<QueryResult>,
+  children: RenderMaybeLoaded<QueryResult>,
+  options: {renderLoading?: boolean | RenderLoading<QueryResult>, renderErrors?: boolean | RenderErrors<QueryResult>}
+): React.ReactElement<any>;
+export function query<QueryResult>(
+  query: BaseRootQuery<QueryResult>,
+  children: RenderLoaded<QueryResult>,
+  options?: {renderLoading?: boolean | RenderLoading<QueryResult>, renderErrors?: boolean | RenderErrors<QueryResult>}
+): React.ReactElement<any> {
   const C: React.ComponentClass<Props<QueryResult>> = Connect;
   return React.createElement(C, {
     query,

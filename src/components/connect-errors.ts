@@ -31,7 +31,7 @@ export interface InjectedProps {
   onDismissMutationError: (err: Error) => any,
 }
 export default function connectErrors(options: Options = EMPTY_OBJECT) {
-  return <OriginalProps extends {}>(WrappedComponent: Component<InjectedProps & OriginalProps>): React.ComponentClass<OriginalProps> => {
+  return <OriginalProps extends {}>(WrappedComponent: Component<InjectedProps & OriginalProps>): Component<OriginalProps> => {
     let key = 0;
     class Connect extends React.Component<OriginalProps, State> {
       static displayName = `ConnectErrors(${getDisplayName(WrappedComponent)})`;
@@ -40,10 +40,10 @@ export default function connectErrors(options: Options = EMPTY_OBJECT) {
         bicycleClient: clientShape,
       };
       _client: BicycleClient<any>;
-      _networkErrorsSubscription: Subscription | void;
-      _mutationErrorsSubscription: Subscription | void;
-      _queueRequestSubscription: Subscription | void;
-      _successfulResponseSubscription: Subscription | void;
+      _networkErrorsSubscription: Subscription | undefined;
+      _mutationErrorsSubscription: Subscription | undefined;
+      _queueRequestSubscription: Subscription | undefined;
+      _successfulResponseSubscription: Subscription | undefined;
       constructor(props: any, context: any) {
         super(props, context);
         this._client = props.client || context.bicycleClient;
@@ -116,7 +116,7 @@ export default function connectErrors(options: Options = EMPTY_OBJECT) {
         });
       }
       render() {
-        return React.createElement((WrappedComponent as React.ComponentClass<OriginalProps & InjectedProps>), {
+        return React.createElement((WrappedComponent as Component<OriginalProps & InjectedProps>), {
           ...(this.props as any),
           networkErrors: this.state.networkErrors,
           mutationErrors: this.state.mutationErrors,
