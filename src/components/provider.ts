@@ -25,22 +25,25 @@ function warnAboutReceivingClient() {
   }
 
   didWarnAboutReceivingClient = true;
-  console.error( // eslint-disable-line no-console
-    '<Provider> does not support changing `client`, `renderLoading` or `renderErrors` on the fly.'
+  console.error(
+    // eslint-disable-line no-console
+    '<Provider> does not support changing `client`, `renderLoading` or `renderErrors` on the fly.',
   );
 }
 
 export interface RenderProps {
-  result: any,
-  loaded: boolean,
-  errors: ReadonlyArray<string>,
-  errorDetails: ReadonlyArray<ErrorResult>,
+  result: any;
+  loaded: boolean;
+  errors: ReadonlyArray<string>;
+  errorDetails: ReadonlyArray<ErrorResult>;
   isLoaded(path: string): boolean;
   isLoaded(value: any, path: string): boolean;
-  WrappedComponent: any,
+  WrappedComponent: any;
   previousElement: React.ReactNode;
 }
-export type Component<Props> = React.ComponentClass<Props> | React.StatelessComponent<Props>;
+export type Component<Props> =
+  | React.ComponentClass<Props>
+  | React.StatelessComponent<Props>;
 
 export interface Props {
   client: BicycleClient<any>;
@@ -69,9 +72,18 @@ export default class Provider extends React.Component<Props> {
   };
   static defaultProps = {
     renderLoading: (props: RenderProps) => defaultLoadingElement,
-    renderErrors: (props: RenderProps) => React.createElement('div', {}, props.errors.map((err, i) => {
-      return React.createElement('div', {key: i, style: errorStyle}, err + '');
-    })),
+    renderErrors: (props: RenderProps) =>
+      React.createElement(
+        'div',
+        {},
+        props.errors.map((err, i) => {
+          return React.createElement(
+            'div',
+            {key: i, style: errorStyle},
+            err + '',
+          );
+        }),
+      ),
   };
   static childContextTypes = {
     bicycleClient: clientShape.isRequired,
@@ -110,12 +122,11 @@ export default class Provider extends React.Component<Props> {
   }
 
   render() {
-    if (process.env.NODE_ENV !== 'production' && !this.props.disableErrorReporter) {
-      return React.createElement(
-        DefaultErrorRenderer,
-        {},
-        this.props.children,
-      );
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      !this.props.disableErrorReporter
+    ) {
+      return React.createElement(DefaultErrorRenderer, {}, this.props.children);
     }
     return React.Children.only(this.props.children);
   }

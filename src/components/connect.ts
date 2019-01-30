@@ -6,7 +6,7 @@ import { BaseRootQuery } from "bicycle/typed-helpers/query";
 import BicycleClient, { QueryCacheResult, Subscription } from "bicycle/client";
 import ErrorResult from "bicycle/types/ErrorResult";
 import clientShape from "../client-shape";
-import DeepPartial from "../DeepPartial";
+import DeepPartial from "../helpers/DeepPartial";
 
 export { PropTypes };
 
