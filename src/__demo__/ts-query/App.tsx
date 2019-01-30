@@ -1,6 +1,6 @@
 import * as React from 'react';
 import BicycleClient from 'bicycle/client';
-import {query} from '../../..';
+import {query} from '../../';
 import TodoItem, {TodoQuery as TodoItemQuery} from './TodoItem';
 import FilterState from '../shared/FilterState';
 import AppChrome from '../shared/components/AppChrome';
@@ -33,38 +33,34 @@ export default class TodoApp extends React.Component<{}, State> {
   };
 
   render() {
-    return query(
-      AppQuery,
-      (result, client, status) => {
-        return (
-          <AppChrome
-            errors={status.errors}
-            onAddTodo={title =>
-              client.update(q.Todo.addTodo({title, completed: false}))
+    return query(AppQuery, (result, client, status) => {
+      return (
+        <AppChrome
+          errors={status.errors}
+          onAddTodo={title =>
+            client.update(q.Todo.addTodo({title, completed: false}))
+          }
+        >
+          <FilterStateRenderProp>
+            {ns => this._renderContent(ns, result, client)}
+          </FilterStateRenderProp>
+          <button
+            onClick={() =>
+              client.update(
+                q.Todo.addTodo({
+                  tatle: 'whatever',
+                  completed: false,
+                } as any),
+              )
             }
+            style={{padding: 20, display: 'block'}}
           >
-            <FilterStateRenderProp>
-              {ns => this._renderContent(ns, result, client)}
-            </FilterStateRenderProp>
-            <button
-              onClick={() =>
-                client.update(
-                  q.Todo.addTodo({
-                    tatle: 'whatever',
-                    completed: false,
-                  } as any),
-                )
-              }
-              style={{padding: 20, display: 'block'}}
-            >
-              Run non existent mutation
-            </button>
-            <ErrorDemonstraction />
-          </AppChrome>
-        );
-      },
-      {renderLoading: () => <div>Loading...</div>},
-    );
+            Run non existent mutation
+          </button>
+          <ErrorDemonstraction />
+        </AppChrome>
+      );
+    });
   }
 
   _renderContent = (

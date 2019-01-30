@@ -3,16 +3,19 @@ import connectErrors, {InjectedProps} from './connect-errors';
 
 function createErrorBox(error: Error, onDismiss: (error: Error) => any) {
   const div = document.createElement('div');
-  div.setAttribute('style', [
-    'white-space: pre-wrap;',
-    'font-family: monospace;',
-    'font-size: 18px;',
-    'padding: 9px;',
-    'margin: 9px;',
-    'background: #900000;',
-    'color: white;',
-    'z-index: 99999;',
-  ].join(''));
+  div.setAttribute(
+    'style',
+    [
+      'white-space: pre-wrap;',
+      'font-family: monospace;',
+      'font-size: 18px;',
+      'padding: 9px;',
+      'margin: 9px;',
+      'background: #900000;',
+      'color: white;',
+      'z-index: 99999;',
+    ].join(''),
+  );
   const msg = document.createElement('div');
   msg.textContent = error.message + '';
   div.appendChild(msg);
@@ -32,7 +35,7 @@ function createErrorBox(error: Error, onDismiss: (error: Error) => any) {
       'font-family: inherit;',
       'font-weight: inherit;',
       'color: black;',
-    ].join('')
+    ].join(''),
   );
   dismissButton.textContent = 'Dismiss';
   dismissButton.addEventListener('click', onDismiss.bind(null, error), false);
@@ -41,7 +44,9 @@ function createErrorBox(error: Error, onDismiss: (error: Error) => any) {
 }
 
 export interface Props {}
-export class Errors extends React.Component<Props & InjectedProps> {
+export class ErrorToastNotificationsView extends React.Component<
+  Props & InjectedProps
+> {
   _errorContainer: HTMLDivElement | undefined;
   componentDidMount() {
     this._renderErrors(this.props);
@@ -60,22 +65,31 @@ export class Errors extends React.Component<Props & InjectedProps> {
       this._errorContainer = undefined;
     }
     if (props.networkErrors.length || props.mutationErrors.length) {
-      const errorContainer = this._errorContainer = document.createElement('div');
-      
-      errorContainer.setAttribute('style', [
-        'position: fixed;',
-        'top: 0;',
-        'left: 0;',
-        'right: 0;',
-        'bottom: 0;',
-        'background: rgba(0, 0, 0, 0.8);',
-        'z-index: 99999;',
-      ].join(''));
-      props.networkErrors.forEach(
-        err => errorContainer.appendChild(createErrorBox(err, props.onDismissNetworkError)),
+      const errorContainer = (this._errorContainer = document.createElement(
+        'div',
+      ));
+
+      errorContainer.setAttribute(
+        'style',
+        [
+          'position: fixed;',
+          'top: 0;',
+          'left: 0;',
+          'right: 0;',
+          'bottom: 0;',
+          'background: rgba(0, 0, 0, 0.8);',
+          'z-index: 99999;',
+        ].join(''),
       );
-      props.mutationErrors.forEach(
-        err => errorContainer.appendChild(createErrorBox(err, props.onDismissMutationError)),
+      props.networkErrors.forEach(err =>
+        errorContainer.appendChild(
+          createErrorBox(err, props.onDismissNetworkError),
+        ),
+      );
+      props.mutationErrors.forEach(err =>
+        errorContainer.appendChild(
+          createErrorBox(err, props.onDismissMutationError),
+        ),
       );
       document.body.appendChild(this._errorContainer);
     }
@@ -85,4 +99,8 @@ export class Errors extends React.Component<Props & InjectedProps> {
   }
 }
 
-export default connectErrors()(Errors);
+export const ErrorToastNotifications = connectErrors()(
+  ErrorToastNotificationsView,
+);
+
+export default ErrorToastNotifications;

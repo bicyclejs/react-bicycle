@@ -1,19 +1,26 @@
-import BicycleClient from "bicycle/client";
-import Provider from "./components/provider";
-import Connect, { query, Status, RenderLoaded, RenderLoading, RenderErrors, RenderMaybeLoaded } from "./components/connect";
-import connect, { ConnectProps } from "./components/connect-hoc";
-import connectErrors from "./components/connect-errors";
+import BicycleClient from 'bicycle/client';
+import Connect, {
+  query,
+  Status,
+  RenderLoaded,
+  RenderLoading,
+  RenderErrors,
+  RenderMaybeLoaded,
+} from './components/Connect';
+import connect, {ConnectProps} from './components/connect-hoc';
+import connectErrors from './components/connect-errors';
 
-import {BicycleProvider} from './context';
-import useClient from "./useClient";
+import useClient from './useClient';
 import useQuery from './useQuery';
 import useNetworkError from './useNetworkError';
+import BicycleProvider from './components/BicycleProvider';
 
-export {useClient, BicycleProvider, useQuery, useNetworkError};
+export {useClient, useQuery, useNetworkError};
 export default useQuery;
 
 export {
-  Provider,
+  BicycleProvider,
+  BicycleProvider as Provider,
   Connect,
   query,
   Status,
@@ -24,5 +31,5 @@ export {
   connect,
   connectErrors,
   ConnectProps,
-  BicycleClient
+  BicycleClient,
 };

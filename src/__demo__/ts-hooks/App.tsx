@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useQuery, useClient} from '../../..';
+import {useQuery, useClient} from '../../';
 import TodoItem, {TodoQuery as TodoItemQuery} from './TodoItem';
 import FilterState from '../shared/FilterState';
 import AppChrome from '../shared/components/AppChrome';
@@ -10,26 +10,12 @@ import useFilterState from '../shared/components/useFilterState';
 const TodoQuery = q.Todo.id.merge(TodoItemQuery);
 const AppQuery = q.Root.todos(TodoQuery);
 
-const errorStyle = {
-  whiteSpace: 'pre-wrap',
-  fontFamily: 'monospace',
-  fontSize: '18px',
-  padding: '9px',
-  background: '#900000',
-  color: 'white',
-};
 const ErrorDemonstraction = () => {
   const result = useQuery({
     todos: {id: true, ttle: true, completad: true},
   } as any);
   if (result.errored) {
-    return React.createElement(
-      'div',
-      {},
-      result.errors.map((err, i) =>
-        React.createElement('div', {key: i, style: errorStyle}, err + ''),
-      ),
-    );
+    return result.render();
   }
   return null;
 };
@@ -40,10 +26,10 @@ export default function TodoApp() {
   const client = useClient();
   const qu = useQuery(AppQuery);
   if (qu.loading) {
-    return <div>Loading...</div>;
+    return qu.render();
   }
   if (qu.errored) {
-    return <div>Something went wrong</div>;
+    return qu.render();
   }
   const {todos} = qu.result;
 

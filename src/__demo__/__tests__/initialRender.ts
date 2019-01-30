@@ -4,7 +4,12 @@ export default function initalRender(opts: Options) {
   test('initial render', () => {
     const {container, clock} = setup(opts);
 
-    // renders empty
+    // doesn't render anything initially, while it attempts
+    // to load data from the server.
+    expect(container).toMatchInlineSnapshot(`<div />`);
+
+    // displays a loading indicator if no data has loaded after 1 second
+    clock.tick(1300);
     expect(container).toMatchInlineSnapshot(`
 <div>
   <div>
@@ -13,9 +18,8 @@ export default function initalRender(opts: Options) {
 </div>
 `);
 
-    clock.tick(4000);
-
     // then loads all the data and renders that
+    clock.tick(8000);
     expect(container).toMatchInlineSnapshot(`
 <div>
   <div>

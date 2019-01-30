@@ -1,6 +1,6 @@
 import * as React from 'react';
 import BicycleClient from 'bicycle/client';
-import {connect, ConnectProps} from '../../..';
+import {connect, ConnectProps} from '../../';
 import TodoItem from './TodoItem';
 import FilterState from '../shared/FilterState';
 import Todo from '../shared/Todo';

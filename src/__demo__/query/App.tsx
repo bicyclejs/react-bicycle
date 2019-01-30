@@ -1,6 +1,6 @@
 import * as React from 'react';
 import BicycleClient from 'bicycle/client';
-import {query} from '../../..';
+import {query} from '../../';
 import TodoItem from './TodoItem';
 import FilterState from '../shared/FilterState';
 import Todo from '../shared/Todo';
@@ -58,7 +58,6 @@ export default class TodoApp extends React.Component<{}, State> {
           </AppChrome>
         );
       },
-      {renderErrors: true, renderLoading: () => <div>Loading...</div>},
     );
   }
 

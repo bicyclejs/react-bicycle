@@ -2,7 +2,10 @@
 
 import {uuid} from './utils';
 
-const LATENCY = 1000;
+let LATENCY = 1000;
+export function setLatency(latency: number) {
+  LATENCY = latency;
+}
 
 const DEFAULT = [
   {id: uuid(), title: 'Build Bicycle', completed: false},

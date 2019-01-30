@@ -7,7 +7,7 @@ export default function newTodo(opts: Options) {
   test('add a new todo', () => {
     const {clock, queryByTestId} = setup(opts);
 
-    clock.tick(4000);
+    clock.tick(8000);
 
     const input = queryByTestId(TestID.NewTodoInput);
     expect(input).toMatchInlineSnapshot(`
@@ -105,7 +105,7 @@ export default function newTodo(opts: Options) {
 </ul>
 `);
 
-    clock.tick(4000);
+    clock.tick(8000);
 
     expect(list).toMatchInlineSnapshot(`
 <ul
