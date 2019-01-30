@@ -67,7 +67,7 @@ export default function Connect<QueryResult>(props: Props<QueryResult>) {
         </React.Fragment>
       );
     } else {
-      return React.createElement(ctx.renderErrors, r);
+      return r.render();
     }
   }
 
@@ -88,7 +88,7 @@ export default function Connect<QueryResult>(props: Props<QueryResult>) {
         </React.Fragment>
       );
     } else {
-      return React.createElement(ctx.renderLoading, r);
+      return r.render();
     }
   }
   const result = props.children(r.result as any, client, {
