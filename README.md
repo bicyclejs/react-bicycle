@@ -4,6 +4,13 @@ React bindings for the bicycle data synchronisation library
 
 ## Usage
 
+For an full demo of a task list app see:
+
+ - with ts-bicycle [src/__demo__/ts-hooks](src/__demo__/ts-hooks) and [src/__demo__/ts-schema](src/__demo__/ts-schema)
+ - without ts-bicycle  [src/__demo__/js-hooks](src/__demo__/js-hooks) and [src/__demo__/js-schema](src/__demo__/js-schema)
+
+These demos are API compatible, so you can use either client with either backend.
+
 ```js
 import React from 'react';
 import ReactDOM from 'react-dom';
