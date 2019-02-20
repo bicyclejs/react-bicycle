@@ -40,12 +40,12 @@
     "react": ">=0.14.9"
   },
   "scripts": {
-    "prepublish": "npm run build",
-    "prebuild": "yarn tsb",
+    "prebuild": "yarn ts-bicycle",
     "build": "tsc",
-    "tsb": "ts-bicycle src/__demo__/ts-schema/schema src/__demo__/ts-schema",
-    "pretest": "yarn tsb",
-    "test": "jest"
+    "ts-bicycle": "ts-bicycle src/__demo__/ts-schema/schema src/__demo__/ts-schema",
+    "pretest": "yarn ts-bicycle",
+    "test": "jest",
+    "ci:test": "yarn test"
   },
   "repository": {
     "type": "git",

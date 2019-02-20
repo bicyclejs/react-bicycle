@@ -1,0 +1,149 @@
+version: 2.1
+
+refs:
+  container: &container
+    docker:
+      - image: node:10
+    working_directory: ~/repo
+  steps:
+    - &Versions
+      run:
+        name: Versions
+        command: node -v && npm -v && yarn -v
+    - &Install
+      run:
+        name: Install Dependencies
+        command: yarn install --pure-lockfile
+    - &Build
+      run:
+        name: Build
+        command: yarn build
+    - &Test
+      run:
+        name: Test
+        command: yarn ci:test
+  test_steps: &test_steps
+    steps:
+      - checkout
+      - *Versions
+      - *Install
+      - *Test
+      - *Build
+
+# commands:
+#   test:
+#     steps:
+#       - checkout
+#       - *Versions
+#       - *Install
+#       - *Test
+#       - *Build
+
+executors:
+  node:
+    parameters:
+      version:
+        type: string
+        default: '10'
+    docker:
+      - image: node:<<parameters.version>>
+    working_directory: ~/repo
+
+jobs:
+  test:
+    parameters:
+      node_version:
+        type: string
+      after_test:
+        description: 'Steps that will be executed after all tests have been run'
+        type: steps
+        default: []
+    executor:
+      name: node
+      version: <<parameters.node_version>>
+    steps:
+      - checkout
+      - *Versions
+      - *Install
+      - *Test
+      - *Build
+      - steps: << parameters.after_test >>
+  publish:
+    executor:
+      name: node
+      version: '10'
+    steps:
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: List Published Files
+          command: ls -R
+      - run:
+          name: NPM Auth
+          command: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+      - run:
+          name: Release
+          command: npx semantic-release
+
+workflows:
+  version: 2
+  all:
+    jobs:
+      - test:
+          name: test_8
+          node_version: '10'
+          filters:
+            branches:
+              ignore: master
+      - test:
+          name: test_10
+          node_version: '10'
+          filters:
+            branches:
+              ignore: master
+  master:
+    jobs:
+      - test:
+          name: test_8
+          node_version: '10'
+          filters:
+            branches:
+              only: master
+      - test:
+          name: test_10
+          node_version: '10'
+          filters:
+            branches:
+              only: master
+          after_test:
+            - run:
+                name: Remove Test/Demo Files
+                command: npx rimraf "lib/**/{__tests__,__demo__}"
+            - persist_to_workspace:
+                root: ~/repo
+                paths:
+                  - lib
+                  - package.json
+                  - README.md
+      - publish:
+          context: common-env
+          filters:
+            branches:
+              only: master
+          requires:
+            - test_8
+            - test_10
+  monthly:
+    triggers:
+      - schedule:
+          cron: '0 0 1 * *'
+          filters:
+            branches:
+              only: master
+    jobs:
+      - test:
+          name: test_8
+          node_version: '10'
+      - test:
+          name: test_10
+          node_version: '10'
