@@ -30,15 +30,6 @@ refs:
       - *Test
       - *Build
 
-# commands:
-#   test:
-#     steps:
-#       - checkout
-#       - *Versions
-#       - *Install
-#       - *Test
-#       - *Build
-
 executors:
   node:
     parameters:
@@ -73,11 +64,9 @@ jobs:
       name: node
       version: '10'
     steps:
+      - checkout
       - attach_workspace:
           at: ~/repo
-      - run:
-          name: List Published Files
-          command: ls -R
       - run:
           name: NPM Auth
           command: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
@@ -123,8 +112,6 @@ workflows:
                 root: ~/repo
                 paths:
                   - lib
-                  - package.json
-                  - README.md
       - publish:
           context: common-env
           filters:
