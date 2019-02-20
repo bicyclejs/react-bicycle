@@ -34,7 +34,7 @@
     "typescript": "^3.0.1"
   },
   "peerDependencies": {
-    "bicycle": ">=4.2.0",
+    "bicycle": ">=8.0.0",
     "react": ">=16.8.2"
   },
   "scripts": {
