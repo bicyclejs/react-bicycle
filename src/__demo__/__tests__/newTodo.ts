@@ -5,9 +5,10 @@ import {ENTER_KEY, ESCAPE_KEY} from '../shared/constants';
 
 export default function newTodo(opts: Options) {
   test('add a new todo', () => {
-    const {clock, queryByTestId} = setup(opts);
+    const {clock, act, queryByTestId} = setup(opts);
 
-    clock.tick(8000);
+    act(() => clock.tick(4000));
+    act(() => clock.tick(4000));
 
     const input = queryByTestId(TestID.NewTodoInput);
     expect(input).toMatchInlineSnapshot(`
@@ -105,7 +106,7 @@ export default function newTodo(opts: Options) {
 </ul>
 `);
 
-    clock.tick(8000);
+    act(() => clock.tick(8000));
 
     expect(list).toMatchInlineSnapshot(`
 <ul

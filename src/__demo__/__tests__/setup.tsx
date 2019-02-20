@@ -4,6 +4,7 @@ import BicycleClient from 'bicycle/client';
 import BicycleServer from 'bicycle/server-core';
 import {install, Clock} from 'lolex';
 import {Provider} from '../..';
+const act: (fn: () => void) => void = require('react-dom/test-utils').act;
 
 let clock: Clock | undefined;
 export const installFakeTimers = () => {
@@ -31,6 +32,10 @@ const setup = ({getApp, getServer}: Options) => {
     },
   });
   return {
+    act: (fn: () => void) =>
+      act(() => {
+        fn();
+      }),
     clock: clock!,
     client,
     ...render(<Provider client={client}>{getApp()}</Provider>),

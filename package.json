@@ -9,9 +9,7 @@
     "lib/"
   ],
   "dependencies": {
-    "@types/prop-types": "^15.5.1",
-    "hoist-non-react-statics": "^1.0.3",
-    "prop-types": "^15.5.10"
+    "hoist-non-react-statics": "^1.0.3"
   },
   "devDependencies": {
     "@types/express": "^4.16.1",
@@ -26,8 +24,8 @@
     "lolex": "^3.0.0",
     "prettier": "^1.16.2",
     "promise": "^8.0.2",
-    "react": "16.7.0-alpha.0 - next",
-    "react-dom": "16.7.0-alpha.0 - next",
+    "react": "^16.8.2",
+    "react-dom": "^16.8.2",
     "react-testing-library": "^5.4.4",
     "todomvc-app-css": "^2.0.6",
     "todomvc-common": "^1.0.2",
@@ -37,7 +35,7 @@
   },
   "peerDependencies": {
     "bicycle": ">=4.2.0",
-    "react": ">=0.14.9"
+    "react": ">=16.8.2"
   },
   "scripts": {
     "prebuild": "yarn ts-bicycle",

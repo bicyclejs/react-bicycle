@@ -2,14 +2,14 @@ import setup, {Options} from './setup';
 
 export default function initalRender(opts: Options) {
   test('initial render', () => {
-    const {container, clock} = setup(opts);
+    const {container, clock, act} = setup(opts);
 
     // doesn't render anything initially, while it attempts
     // to load data from the server.
     expect(container).toMatchInlineSnapshot(`<div />`);
 
     // displays a loading indicator if no data has loaded after 1 second
-    clock.tick(1300);
+    act(() => clock.tick(1300));
     expect(container).toMatchInlineSnapshot(`
 <div>
   <div>
@@ -18,8 +18,13 @@ export default function initalRender(opts: Options) {
 </div>
 `);
 
-    // then loads all the data and renders that
-    clock.tick(8000);
+    // Then loads all the data and renders that
+    // because our demo actually requires a second
+    // round trip to render the errors, we have to
+    // call `act` twice as React doesn't apply the
+    // state changes until `act` in tests.
+    act(() => clock.tick(4000));
+    act(() => clock.tick(4000));
     expect(container).toMatchInlineSnapshot(`
 <div>
   <div>
