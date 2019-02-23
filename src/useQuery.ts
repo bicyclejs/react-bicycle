@@ -1,6 +1,7 @@
 import * as React from 'react';
 import ErrorResult from 'bicycle/types/ErrorResult';
 import {BaseRootQuery} from 'bicycle/typed-helpers/query';
+import notEqual from 'bicycle/utils/not-equal';
 import DeepPartial from './helpers/DeepPartial';
 import DeepPartialUnion from './helpers/DeepPartialUnion';
 import Query from 'bicycle/types/Query';
@@ -78,16 +79,22 @@ function extractResponse<TResult>(
 export default function useQuery<QueryResult>(
   query: Query | BaseRootQuery<QueryResult>,
 ): Response<QueryResult> {
+  const queryRef = React.useRef(query);
+  if (notEqual(queryRef.current, query)) {
+    queryRef.current = query;
+  }
   const ctx = useContext();
   const [response, setResponse] = React.useState<Response<QueryResult>>(() => {
-    const r = ctx.client.queryCache(query as BaseRootQuery<QueryResult>);
+    const r = ctx.client.queryCache(queryRef.current as BaseRootQuery<
+      QueryResult
+    >);
     return extractResponse(ctx, r.result, r.loaded, r.errors, r.errorDetails);
   });
   const loadingDuration = useLoadingDuration(response.loading);
   React.useEffect(() => {
     let ready = false;
     const subscription = ctx.client.subscribe(
-      query as BaseRootQuery<QueryResult>,
+      queryRef.current as BaseRootQuery<QueryResult>,
       (result, loaded, errors, errorDetails) => {
         if (ready) {
           setResponse(
@@ -100,7 +107,7 @@ export default function useQuery<QueryResult>(
     return () => {
       subscription.unsubscribe();
     };
-  }, [ctx.client, query]);
+  }, [ctx.client, queryRef.current]);
   if (response.loading) {
     const r: LoadingResponse<QueryResult> = {
       ...response,
